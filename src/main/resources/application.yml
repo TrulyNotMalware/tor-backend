@@ -1,0 +1,11 @@
+#spring:
+#  r2dbc:
+#    url: r2dbc:mariadb://203.252.166.213:30006/kurly
+#    username: kurly
+#    password: kurly
+#    pool:
+#      max-size: 100
+#      validation-query: SELECT 1
+#  config:
+#    activate:
+#      on-profile: mariaSource

@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> b72f451 (feat : init develop branch.)
 HELP.md
 .gradle
 build/
@@ -27,5 +30,22 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
+<<<<<<< HEAD
 ### VS Code ###
 .vscode/
+=======
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Local Develop ###
+tor-OSX-local-init.sh
+tor-Linux-local-init.sh
+local_read.md
+>>>>>>> b72f451 (feat : init develop branch.)

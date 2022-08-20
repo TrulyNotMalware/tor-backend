@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: tor
+  name: tor-backend-deploy
+spec:
+  replicas: 1
+  selector:
+     matchLabels:
+        app: tor-backend
+  template:
+     metadata:
+       labels:
+          app: tor-backend
+     spec:
+       containers:
+       - name: tor-backend
+         image: #VERSION_STRING#
+         ports: 
+         - name: backend-port
+           containerPort: 9000
+         imagePullPolicy: IfNotPresent
+         volumeMounts:
+         - name: tz-seoul
+           mountPath: /etc/localtime
+         - name: tor-backend-volume
+           mountPath: /build/resources/main/data 
+         envFrom:
+         - secretRef:
+             name: tor-backend-secret       
+         resources:
+          limits:
+            cpu: "2000m"
+            memory: "2048Mi"
+          requests:
+            cpu: "2000m"
+            memory: "2048Mi"
+       volumes:
+       - name: tor-backend-volume
+         persistentVolumeClaim:
+             claimName: tor-backend-pvc 
+       - name: tz-seoul
+         hostPath:
+             path: /usr/share/zoneinfo/Asia/Seoul 
+
+

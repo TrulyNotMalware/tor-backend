@@ -1,0 +1,93 @@
+plugins {
+    id 'org.springframework.boot' version '2.7.2'
+    id 'io.spring.dependency-management' version '1.0.12.RELEASE'
+    id 'java'
+}
+
+group = 'com.hackerton.tor'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    //Spring Webflux
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    testImplementation('org.springframework.boot:spring-boot-starter-test'){
+        exclude module: 'junit' //JUnit4 exclude
+    }
+    testImplementation 'io.projectreactor:reactor-test'
+
+    //Devtools
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    //Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    //Swagger Supports
+    implementation "io.springfox:springfox-boot-starter:3.0.0"
+    implementation "io.springfox:springfox-swagger-ui:3.0.0"
+
+    //[Manage]Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    //Junit5
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+
+    //R2DBC
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    // 1)MariaDB
+//    runtimeOnly 'org.mariadb:r2dbc-mariadb'
+//    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+//    implementation 'org.mariadb.jdbc:mariadb-java-client'
+    // 2)MySQL
+    runtimeOnly 'dev.miku:r2dbc-mysql:0.8.2.RELEASE'
+    implementation 'mysql:mysql-connector-java'
+
+
+    //Json
+    implementation 'org.json:json:20220320'
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+
+    //Jackson - Datetime error dependencies include
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    //Validation
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    //Hateos
+    implementation (group: 'org.springframework.hateoas', name: 'spring-hateoas'){
+        // Spring mvc exclude
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-web'
+    }
+
+    //Mahout as Lib.
+//    implementation 'org.apache.mahout:mahout-core:14.1'
+    implementation 'org.apache.mahout:mahout-math:0.13.0'
+    implementation 'org.apache.mahout:mahout-hdfs:0.13.0'
+    implementation 'org.apache.mahout:mahout-mr:0.13.0'
+    implementation 'org.apache.mahout:mahout-integration:0.13.0'
+    implementation 'org.apache.mahout:mahout-math-scala_2.10:0.13.0'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    testLogging {
+        showStandardStreams = true
+        showCauses = true
+        showExceptions = true
+        showStackTraces = true
+        exceptionFormat = 'full'
+    }
+}
