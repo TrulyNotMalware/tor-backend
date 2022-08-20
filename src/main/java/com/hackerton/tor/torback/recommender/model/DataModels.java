@@ -17,7 +17,7 @@ public class DataModels {
         //Join Table lists.
         JDBCDataModel jdbcDataModel = new MySQLJDBCDataModel(
                 dataSource,
-                "taste_preferences",
+                "product_preferences",
                 "userNumber",
                 "productId",
                 "preference",

@@ -18,7 +18,7 @@ public class Cart {
 
     @NotNull
     @Column("productId")// FK
-    private int productId;
+    private long productId;
 
     @NotNull
     @Column("count")

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class Product {
     @Id
     @Column("productId") //Auto Increments
-    private int productId;
+    private long productId;
 
     @NotNull
     @Column("productName")

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class Preset {
     @Id
     @Column("presetId")// Auto-increment
-    private int presetId;
+    private long presetId;
 
     @NotNull
     @Column("presetName")

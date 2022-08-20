@@ -16,7 +16,7 @@ public class User_filter_binding {
 
     @Nullable
     @Column("presetId")//FK
-    private int presetId;
+    private long presetId;
 
     @NotNull
     @Column("recommend")

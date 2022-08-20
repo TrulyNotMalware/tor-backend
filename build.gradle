@@ -52,7 +52,8 @@ dependencies {
 //    implementation 'org.mariadb.jdbc:mariadb-java-client'
     // 2)MySQL
     runtimeOnly 'dev.miku:r2dbc-mysql:0.8.2.RELEASE'
-    implementation 'mysql:mysql-connector-java'
+    implementation 'mysql:mysql-connector-java:8.0.30'
+
 
 
     //Json
