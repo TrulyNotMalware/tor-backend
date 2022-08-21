@@ -15,4 +15,7 @@ public interface PresetRepository extends R2dbcRepository<Preset, String> {
             "WHERE u.userId = p.producer\n" +
             "AND u.userId = ?")
     Flux<Preset> getMyPresetLists(String userId);
+
+    @Query("SELECT * FROM preset WHERE presetId = ?")
+    Mono<Preset> getPresetById(int presetId);
 }

@@ -42,3 +42,6 @@ out/
 tor-OSX-local-init.sh
 tor-Linux-local-init.sh
 local_read.md
+
+### MacOS X ###
+.DS_Store

@@ -1,9 +1,11 @@
 package com.hackerton.tor.torback.preset;
 
 import com.hackerton.tor.torback.entity.Preset;
+import com.hackerton.tor.torback.entity.Preset_score;
 import com.hackerton.tor.torback.product.ProductController;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONObject;
 import org.springframework.hateoas.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -68,6 +70,30 @@ public class PresetController {
                         .withSelfRel()
                         .toMono()
                         .map(link -> CollectionModel.of(presets,link)));
+    }
+
+    @GetMapping(value = "/getEvalPresets/{userId}/{presetId}", produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<EntityModel<Preset_score>> getEvalPresetScore(
+            @PathVariable String userId,
+            @PathVariable int presetId
+    ){
+        Mono<Links> allLinks;
+        Mono<Link> self = linkTo(methodOn(PresetController.class).getEvalPresetScore(userId,presetId)).withSelfRel().toMono();
+        Mono<Link> aggregateLink = linkTo(methodOn(ProductController.class).getProductListsByPresetName(null))
+                .withRel(IanaLinkRelations.ITEM).toMono();
+        allLinks = Mono.zip(self,aggregateLink)
+                .map(links -> Links.of(links.getT1(),links.getT2()));
+        return this.services.getEvalPresetScores(userId, presetId)
+                .flatMap(aDouble -> {
+                    Preset_score result = new Preset_score();
+                    result.setScore(aDouble);
+                    return this.services.getPresetByPresetId(presetId)
+                            .flatMap(preset -> {
+                                result.setPreset(preset);
+                                return Mono.zip(Mono.just(result),allLinks)
+                                        .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()));
+                            });
+                });
     }
 
 }
