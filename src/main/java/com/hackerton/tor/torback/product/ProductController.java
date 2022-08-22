@@ -1,6 +1,5 @@
 package com.hackerton.tor.torback.product;
 
-import com.hackerton.tor.torback.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.*;
@@ -52,6 +51,15 @@ public class ProductController {
         Mono<Link> selfLink = linkTo(methodOn(ProductController.class).getSameProduct(productId))
                 .withSelfRel().toMono();
         return Mono.zip(this.services.getSameCategoryProduct(productId).collectList(),selfLink)
+                .map(objects -> CollectionModel.of(objects.getT1(),objects.getT2()));
+    }
+
+    @GetMapping(value = "/getProductLists/{categoryName}", produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<CollectionModel<?>> getProductListsByCategoryName( @PathVariable String categoryName){
+        Mono<Link> selfLink = linkTo(methodOn(ProductController.class).getProductListsByCategoryName(categoryName))
+                .withSelfRel().toMono();
+
+        return Mono.zip(this.services.getProductListsByCategoryName(categoryName).collectList(),selfLink)
                 .map(objects -> CollectionModel.of(objects.getT1(),objects.getT2()));
     }
 }
