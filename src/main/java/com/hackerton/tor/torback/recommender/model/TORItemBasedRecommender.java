@@ -18,22 +18,29 @@ import java.util.List;
 @Component("TORItemBasedRecommender")
 public class TORItemBasedRecommender {
     private ItemSimilarity itemSimilarity;
+    private ItemSimilarity presetItemSimilarity;
     private ItemBasedRecommender itemBasedRecommender;
+    private ItemBasedRecommender presetItemBasedRecommender;
 
     //Constructor
     TORItemBasedRecommender(){
         log.debug("create New ItemBasedRecommender");
         DataModel dataModel = new DataModels().getDataModel();
+        DataModel presetDataModel = new DataModels().getPresetDataModel();
         try{
             this.itemSimilarity = new PearsonCorrelationSimilarity(dataModel);
+            this.presetItemSimilarity = new PearsonCorrelationSimilarity(presetDataModel);
         }catch (TasteException e) {
             e.printStackTrace();
         }
         this.itemBasedRecommender = new GenericItemBasedRecommender(dataModel,this.itemSimilarity);
+        this.presetItemBasedRecommender = new GenericItemBasedRecommender(presetDataModel,this.presetItemSimilarity);
     }
 
     /**
      * Three default functions insert.
+     * Version 1) Product Recommend,
+     * Version 2) Preset Recommend
      */
 
     public List<RecommendedItem> getRecommendedItemsByUserId(long userID, int size) {
@@ -59,6 +66,36 @@ public class TORItemBasedRecommender {
         List<RecommendedItem> recommendations = null;
         try {
             recommendations = this.itemBasedRecommender.mostSimilarItems(itemId, size);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return  recommendations;
+    }
+
+
+    public List<RecommendedItem> getRecommendedPresetItemByUserId(long userId, int size){
+        List<RecommendedItem> recommendations = null;
+        log.debug("getRecommendedPresetItemByUserId : {}",userId);
+        try {
+            recommendations = this.presetItemBasedRecommender.recommend(userId, size);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        log.debug("Size : {}",recommendations.size());
+        for( RecommendedItem item : recommendations){
+            log.debug("Recom : {}",item.getItemID());
+        }
+        return recommendations;
+    }
+
+    public void presetRefresh() {
+        this.presetItemBasedRecommender.refresh(null);
+    }
+
+    public List<RecommendedItem> getPresetItemsMostSimilar(long itemId,int size) {
+        List<RecommendedItem> recommendations = null;
+        try {
+            recommendations = this.presetItemBasedRecommender.mostSimilarItems(itemId, size);
         } catch (Exception e) {
             e.printStackTrace();
         }

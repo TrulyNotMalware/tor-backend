@@ -33,6 +33,13 @@ public class PresetController {
          * Return : Preset Lists
          */
         Mono<Links> allLinks;
+        Mono<Link> self = linkTo(methodOn(PresetController.class).getPresetListByRecommend()).withSelfRel().toMono();
+        Mono<Link> presetAggregateLink = linkTo(methodOn(PresetController.class).getPresetInfoByName(null))
+                .withRel(IanaLinkRelations.ITEM).toMono();
+
+        allLinks = Mono.zip(self,presetAggregateLink)
+                .map(links -> Links.of(links.getT1(),links.getT2()));
+
         Mono<Link> aggregateLink = linkTo(methodOn(ProductController.class).getProductListsByPresetName(null))
                 .withRel(IanaLinkRelations.ITEM).toMono();
         return this.services.getPresetListTop20()
@@ -43,10 +50,7 @@ public class PresetController {
                  */
                 .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()))
                 .collectList()
-                .flatMap(presets -> linkTo(methodOn(PresetController.class)
-                        .getPresetListByRecommend())
-                        .withSelfRel()
-                        .toMono()
+                .flatMap(presets -> allLinks
                         .map(link -> CollectionModel.of(presets,link)));
     }
     @GetMapping(value = "/getMyPresetLists/{userId}",produces = MediaTypes.HAL_JSON_VALUE)
@@ -96,4 +100,12 @@ public class PresetController {
                 });
     }
 
+    @GetMapping(value = "/getPreset/{presetName}", produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<EntityModel<Preset>> getPresetInfoByName(
+            @PathVariable String presetName
+    ){
+        Mono<Link> self = linkTo(methodOn(PresetController.class).getPresetInfoByName(presetName)).withSelfRel().toMono();
+        return this.services.getPresetByPresetName(presetName).zipWith(self)
+                .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()));
+    }
 }

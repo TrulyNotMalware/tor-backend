@@ -10,6 +10,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.constraints.NotNull;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
 
 @Slf4j
 @AllArgsConstructor
@@ -34,6 +39,11 @@ public class PresetServices {
                 .doOnError(error -> log.trace(error.getMessage()));
     }
 
+    public Mono<Preset> getPresetByPresetName(@NotNull String presetName){
+        return this.presetRepository.getPresetByName(presetName)
+                .doOnError(error -> log.trace(error.getMessage()));
+    }
+
     public Mono<Double> getEvalPresetScores(@NotNull String userId, @NotNull int presetId){
         //Final Return
 
@@ -45,11 +55,12 @@ public class PresetServices {
                 getPresetDiversityScore(presetId))
                 .flatMap(objects -> Mono.zip(getDoRecommendScore(userId, presetId),
                         getSimilarBuyPreferenceScore(userId, presetId),
+                        getSimilarRecommendPreferenceScore(userId, presetId),
                         getRelativeWithPurchasedHistoryScore(userId, presetId))
                         .flatMap(objects2 ->
                                 Mono.just(
                                         objects.getT1()+objects.getT2()+objects.getT3()+objects.getT4()+objects.getT5()
-                        +objects2.getT1()+objects2.getT2()+objects2.getT3())));
+                        +objects2.getT1()+objects2.getT2()+objects2.getT3()+ objects2.getT4())));
 
 //        return getProductPopularityScore(presetId).flatMap(PopularityScore -> {
 //            log.debug("PopularityScore : {}",PopularityScore);
@@ -270,6 +281,39 @@ public class PresetServices {
                 .flatMap(stringObjectMap -> Flux.just(Integer.parseInt(String.valueOf(stringObjectMap.get("presetId")))))
                 .switchIfEmpty(Mono.defer(() -> Mono.just(0)));
     }
+
+    // 개인화 평가 함수 3번 : 나와 비슷한 성향 유저가 추천한 모음집 여부 평가
+    public Mono<Double> getSimilarRecommendPreferenceScore( String userId, int presetId ){
+        return getSimilarRecommendPreferencePresetList(userId).collectList()
+                .flatMap(integers -> {
+                    if(integers.contains(presetId)) return Mono.just(5.0D);
+                    else return Mono.just(0.0D);
+                }).switchIfEmpty(Mono.defer(() -> Mono.just(0.0D)));
+    }
+
+    public Flux<Integer> getSimilarRecommendPreferencePresetList(String userId ){
+        ArrayList<Integer> similarRecommendPreferencePresetList = new ArrayList<>();
+        return this.databaseClient.sql("SELECT  upb2.presetId as presetId FROM user_preset_binding upb2\n" +
+                "WHERE userId in\n" +
+                "(\n" +
+                "    SELECT DISTINCT upb1.userID FROM user_preset_binding upb1\n" +
+                "    WHERE upb1.presetId in (\n" +
+                "        SELECT DISTINCT presetId FROM user_preset_binding\n" +
+                "        WHERE userId =\""+ userId +"\"\n" +
+                "        AND recommend > 0\n" +
+                "        )\n" +
+                "    AND upb1.userId !=\""+ userId +"\"\n" +
+                ")\n" +
+                "AND presetId not in\n" +
+                "(\n" +
+                "    SELECT DISTINCT presetId FROM user_preset_binding\n" +
+                "        WHERE userId =\""+ userId +"\"\n" +
+                "        AND recommend > 0\n" +
+                ")").fetch().all()
+                .flatMap(presetId -> Flux.just(Integer.parseInt(String.valueOf(presetId.get("presetId")))))
+                .switchIfEmpty(Mono.defer(() -> Mono.just(0)));
+    }
+
     // 개인화 평가 함수 4번 : 이전에 구매한 제품, 모음집 기반 평가
     public Mono<Double> getRelativeWithPurchasedHistoryScore( String userId, int presetId ){
         return Mono.zip(
@@ -279,7 +323,8 @@ public class PresetServices {
                 getPresetByCategoryScore(userId,presetId)
         ).flatMap(objects -> Mono.just(objects.getT1() +
                 objects.getT2() +
-                objects.getT3()));
+                objects.getT3() +
+                objects.getT4()));
     }
 
     // 4.1번 : 구매 이력이 있는 제품의 개수 기반 평가

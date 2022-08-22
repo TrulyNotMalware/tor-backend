@@ -18,4 +18,7 @@ public interface PresetRepository extends R2dbcRepository<Preset, String> {
 
     @Query("SELECT * FROM preset WHERE presetId = ?")
     Mono<Preset> getPresetById(int presetId);
+
+    @Query("SELECT * FROM preset WHERE presetName = ?")
+    Mono<Preset> getPresetByName(String presetName);
 }
