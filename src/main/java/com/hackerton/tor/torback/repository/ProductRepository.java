@@ -25,5 +25,5 @@ public interface ProductRepository extends R2dbcRepository<Product, String> {
     Flux<Product> getSameCategoryProducts(@Param(value = "productId") int productId);
 
     @Query("SELECT * FROM product WHERE productId = :productId")
-    Flux<Product> getProductById(@Param(value = "productId") int productId);
+    Mono<Product> getProductById(@Param(value = "productId") int productId);
 }

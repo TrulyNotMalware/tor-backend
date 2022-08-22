@@ -10,11 +10,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.constraints.NotNull;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 
 @Slf4j
 @AllArgsConstructor
@@ -292,7 +287,6 @@ public class PresetServices {
     }
 
     public Flux<Integer> getSimilarRecommendPreferencePresetList(String userId ){
-        ArrayList<Integer> similarRecommendPreferencePresetList = new ArrayList<>();
         return this.databaseClient.sql("SELECT  upb2.presetId as presetId FROM user_preset_binding upb2\n" +
                 "WHERE userId in\n" +
                 "(\n" +
