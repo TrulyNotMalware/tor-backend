@@ -19,4 +19,7 @@ public interface CategoryRepository extends R2dbcRepository<Category, String> {
             "(select distinct parentCategoryName from category where parentCategoryName is not null )\n" +
             "AND parentCategoryName != '프리셋'")
     Flux<Category> getLowestCategoryList();
+
+    @Query("SELECT * FROM category WHERE parentCategoryName = '프리셋';")
+    Flux<Category> getPresetCategories();
 }

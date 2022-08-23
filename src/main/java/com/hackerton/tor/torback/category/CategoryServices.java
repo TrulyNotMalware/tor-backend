@@ -28,4 +28,9 @@ public class CategoryServices {
         return this.categoryRepository.getLowestCategoryList()
                 .doOnError(error -> log.trace(error.getMessage())).log("getLowestsCategorty");
     }
+
+    Flux<Category> getPresetCategories(){
+        return this.categoryRepository.getPresetCategories()
+                .doOnError(error -> log.trace(error.getMessage())).log("getPresetCategories");
+    }
 }

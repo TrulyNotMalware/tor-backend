@@ -7,11 +7,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.hateoas.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.methodOn;
@@ -108,4 +108,36 @@ public class PresetController {
         return this.services.getPresetByPresetName(presetName).zipWith(self)
                 .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()));
     }
+
+    @PutMapping(value = "/updatePresetRecommend", produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<Preset> updatePresetRecommendByPresetId(
+            @RequestBody HashMap<String, String> params
+    ){
+        int presetId = Integer.parseInt(params.get("presetId"));
+        return this.services.updateRecommendByPresetId(presetId);
+    }
+
+//    @PostMapping(value = "/createdPreset", produces = MediaTypes.HAL_JSON_VALUE)
+//    public Mono<EntityModel<Preset>> createPreset(
+//            @RequestBody HashMap<String, Object> params
+//    ){
+//        /**
+//         * {
+//         *     "presetName":String,
+//         *     "presetContent":String,
+//         *     "presetCategoryName":presetCategory,
+//         *     "producer": userId,
+//         *     "items":{
+//         *         productCategoryName:[productId,productId...],
+//         *     }
+//         * }
+//         */
+//        String presetName = String.valueOf(params.get("presetName"));
+//        String presetContent = String.valueOf(params.get("presetContent"));
+//        String presetCategoryName = String.valueOf(params.get("presetCategory"));
+//        String producer = String.valueOf(params.get("producer"));
+//        JSONObject items = (JSONObject) params.get("items");
+//
+//    }
+
 }

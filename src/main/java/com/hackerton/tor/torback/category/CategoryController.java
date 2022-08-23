@@ -78,4 +78,13 @@ public class CategoryController {
                 .map(objects -> CollectionModel.of(objects.getT1(),objects.getT2()));
     }
 
+    @GetMapping(value = "/getAllPresetCategories",produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<CollectionModel<?>> getAllPresetCategories(){
+        Mono<Links> allLinks;
+        Mono<Link> self = linkTo(methodOn(CategoryController.class).getAllPresetCategories()).withSelfRel().toMono();
+
+        return Mono.zip(this.categoryServices.getPresetCategories().collectList(),self)
+                .map(objects -> CollectionModel.of(objects.getT1(),objects.getT2()));
+    }
+
 }

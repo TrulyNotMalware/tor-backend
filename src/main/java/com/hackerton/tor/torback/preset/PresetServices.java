@@ -4,12 +4,16 @@ import com.hackerton.tor.torback.entity.Preset;
 import com.hackerton.tor.torback.repository.PresetRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONObject;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collector;
 
 @Slf4j
 @AllArgsConstructor
@@ -38,6 +42,32 @@ public class PresetServices {
         return this.presetRepository.getPresetByName(presetName)
                 .doOnError(error -> log.trace(error.getMessage()));
     }
+
+    public Mono<Preset> updateRecommendByPresetId(@NotNull int presetId){
+        return this.presetRepository.updatePresetRecommend(presetId)
+                .doOnError(error -> log.trace(error.getMessage()));
+    }
+
+//    public Mono<Preset> createNewPreset(
+//            @NotNull String presetName,
+//            String presetContent,
+//            @NotNull String presetCategoryName,
+//            @NotNull String producer,
+//            JSONObject items
+//    ){
+//        return this.presetRepository.insertNewPreset(presetName,presetContent,presetCategoryName,producer)
+//                .flatMap(preset -> {
+//                    long presetId = preset.getPresetId();
+//                    return Mono.just((Set<String>) items.keySet()).flatMapMany(Flux::fromIterable)
+//                            .flatMap(key -> {
+//                                List<Long> values = (List<Long>) items.get(key);
+//                                return Mono.just(values).flatMapMany(Flux::fromIterable)
+//                                        .flatMap(value -> {
+//
+//                                        })
+//                            });
+//                });
+//    }
 
     public Mono<Double> getEvalPresetScores(@NotNull String userId, @NotNull int presetId){
         //Final Return
