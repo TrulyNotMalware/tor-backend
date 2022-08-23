@@ -35,6 +35,18 @@ public class LoginController {
         return this.services.doLogin(params.get("userId"),params.get("password"));
     }
 
+    @GetMapping(value = "/checkDuplicated/{userId}",produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<EntityModel<User>> getIsUserDuplicated(
+            @PathVariable String userId
+    ){
+        LoginController controller = methodOn(LoginController.class);
+        Mono<Link> selfLink = linkTo(controller.getIsUserDuplicated(userId))
+                .withSelfRel()
+                .toMono();
+        return Mono.zip(this.services.isDuplicatedUser(userId),selfLink)
+                .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()));
+    }
+
     @PutMapping(value = "/signUp", produces = MediaTypes.HAL_JSON_VALUE )
     public Mono<EntityModel<User>> createNewUser(
         @RequestBody HashMap<String, String> params
