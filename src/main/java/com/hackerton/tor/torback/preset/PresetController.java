@@ -1,15 +1,17 @@
 package com.hackerton.tor.torback.preset;
 
 import com.hackerton.tor.torback.entity.Preset;
+import com.hackerton.tor.torback.entity.Preset_score;
 import com.hackerton.tor.torback.product.ProductController;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONObject;
 import org.springframework.hateoas.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.methodOn;
@@ -17,6 +19,7 @@ import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.met
 @Slf4j
 @AllArgsConstructor
 @RestController
+@CrossOrigin
 @RequestMapping("/api/preset")
 public class PresetController {
 
@@ -31,6 +34,13 @@ public class PresetController {
          * Return : Preset Lists
          */
         Mono<Links> allLinks;
+        Mono<Link> self = linkTo(methodOn(PresetController.class).getPresetListByRecommend()).withSelfRel().toMono();
+        Mono<Link> presetAggregateLink = linkTo(methodOn(PresetController.class).getPresetInfoByName(null))
+                .withRel(IanaLinkRelations.ITEM).toMono();
+
+        allLinks = Mono.zip(self,presetAggregateLink)
+                .map(links -> Links.of(links.getT1(),links.getT2()));
+
         Mono<Link> aggregateLink = linkTo(methodOn(ProductController.class).getProductListsByPresetName(null))
                 .withRel(IanaLinkRelations.ITEM).toMono();
         return this.services.getPresetListTop20()
@@ -41,10 +51,7 @@ public class PresetController {
                  */
                 .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()))
                 .collectList()
-                .flatMap(presets -> linkTo(methodOn(PresetController.class)
-                        .getPresetListByRecommend())
-                        .withSelfRel()
-                        .toMono()
+                .flatMap(presets -> allLinks
                         .map(link -> CollectionModel.of(presets,link)));
     }
     @GetMapping(value = "/getMyPresetLists/{userId}",produces = MediaTypes.HAL_JSON_VALUE)
@@ -69,5 +76,69 @@ public class PresetController {
                         .toMono()
                         .map(link -> CollectionModel.of(presets,link)));
     }
+
+    @GetMapping(value = "/getEvalPresets/{userId}/{presetId}", produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<EntityModel<Preset_score>> getEvalPresetScore(
+            @PathVariable String userId,
+            @PathVariable int presetId
+    ){
+        Mono<Links> allLinks;
+        Mono<Link> self = linkTo(methodOn(PresetController.class).getEvalPresetScore(userId,presetId)).withSelfRel().toMono();
+        Mono<Link> aggregateLink = linkTo(methodOn(ProductController.class).getProductListsByPresetName(null))
+                .withRel(IanaLinkRelations.ITEM).toMono();
+        allLinks = Mono.zip(self,aggregateLink)
+                .map(links -> Links.of(links.getT1(),links.getT2()));
+        return this.services.getEvalPresetScores(userId, presetId)
+                .flatMap(aDouble -> {
+                    Preset_score result = new Preset_score();
+                    result.setScore(aDouble);
+                    return this.services.getPresetByPresetId(presetId)
+                            .flatMap(preset -> {
+                                result.setPreset(preset);
+                                return Mono.zip(Mono.just(result),allLinks)
+                                        .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()));
+                            });
+                });
+    }
+
+    @GetMapping(value = "/getPreset/{presetName}", produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<EntityModel<Preset>> getPresetInfoByName(
+            @PathVariable String presetName
+    ){
+        Mono<Link> self = linkTo(methodOn(PresetController.class).getPresetInfoByName(presetName)).withSelfRel().toMono();
+        return this.services.getPresetByPresetName(presetName).zipWith(self)
+                .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()));
+    }
+
+    @PutMapping(value = "/updatePresetRecommend", produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<Preset> updatePresetRecommendByPresetId(
+            @RequestBody HashMap<String, String> params
+    ){
+        int presetId = Integer.parseInt(params.get("presetId"));
+        return this.services.updateRecommendByPresetId(presetId);
+    }
+
+//    @PostMapping(value = "/createdPreset", produces = MediaTypes.HAL_JSON_VALUE)
+//    public Mono<EntityModel<Preset>> createPreset(
+//            @RequestBody HashMap<String, Object> params
+//    ){
+//        /**
+//         * {
+//         *     "presetName":String,
+//         *     "presetContent":String,
+//         *     "presetCategoryName":presetCategory,
+//         *     "producer": userId,
+//         *     "items":{
+//         *         productCategoryName:[productId,productId...],
+//         *     }
+//         * }
+//         */
+//        String presetName = String.valueOf(params.get("presetName"));
+//        String presetContent = String.valueOf(params.get("presetContent"));
+//        String presetCategoryName = String.valueOf(params.get("presetCategory"));
+//        String producer = String.valueOf(params.get("producer"));
+//        JSONObject items = (JSONObject) params.get("items");
+//
+//    }
 
 }

@@ -13,16 +13,16 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Data
-@Table(name = "taste_preferences")
-public class Taste_preferences {
+@Table(name = "preset_preferences")
+public class Preset_preferences {
 
     @NotNull
     @Column("userNumber")
     private long userNumber;
 
     @NotNull
-    @Column("productId")
-    private long productId;
+    @Column("presetId")
+    private long presetId;
 
     @NotNull
     @Column("preference")

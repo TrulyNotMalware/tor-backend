@@ -28,4 +28,9 @@ public class ProductServices {
     public Flux<Product> getSameCategoryProduct(@NotNull int productId){
         return this.productRepository.getSameCategoryProducts(productId);
     }
+
+    public Flux<Product> getProductListsByCategoryName(@NotNull String categoryName){
+        return this.productRepository.getProductListByCategoryName(categoryName)
+                .doOnError(error -> log.trace(error.getMessage()));
+    }
 }

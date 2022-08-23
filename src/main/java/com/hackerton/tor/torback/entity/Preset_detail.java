@@ -14,7 +14,7 @@ public class Preset_detail {
 
     @NotNull
     @Column("presetId")//FK
-    private int presetId;
+    private long presetId;
 
     @NotNull
     @Column("categoryName")//FK
@@ -22,7 +22,7 @@ public class Preset_detail {
 
     @NotNull
     @Column("productId")//FK
-    private int productId;
+    private long productId;
 
     @Nullable
     @Column("createdAt")

@@ -16,6 +16,7 @@ import java.util.HashMap;
 @Slf4j
 @AllArgsConstructor
 @RestController
+@CrossOrigin
 @RequestMapping("/api/login")
 public class LoginController {
 

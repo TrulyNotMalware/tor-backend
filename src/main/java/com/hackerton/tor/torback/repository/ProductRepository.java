@@ -9,11 +9,12 @@ import reactor.core.publisher.Mono;
 
 public interface ProductRepository extends R2dbcRepository<Product, String> {
 
-    @Query("SELECT p.* FROM preset ps\n" +
+    @Query("UPDATE preset SET views = views + 1 WHERE presetName = :presetName;\n" +
+            "SELECT p.* FROM preset ps\n" +
             "JOIN preset_detail pd ON ps.presetId = pd.presetId\n" +
             "JOIN product p ON pd.productId=p.productId\n" +
-            "WHERE ps.presetName=?")
-    Flux<Product> getProductListByPresetName(String presetName);
+            "WHERE ps.presetName=:presetName;")
+    Flux<Product> getProductListByPresetName(@Param(value = "presetName")String presetName);
 
     @Query("SELECT * FROM product\n" +
             "WHERE categoryName\n" +
@@ -25,5 +26,8 @@ public interface ProductRepository extends R2dbcRepository<Product, String> {
     Flux<Product> getSameCategoryProducts(@Param(value = "productId") int productId);
 
     @Query("SELECT * FROM product WHERE productId = :productId")
-    Flux<Product> getProductById(@Param(value = "productId") int productId);
+    Mono<Product> getProductById(@Param(value = "productId") int productId);
+
+    @Query("SELECT * FROM product WHERE categoryName = ?")
+    Flux<Product> getProductListByCategoryName(String categoryName);
 }

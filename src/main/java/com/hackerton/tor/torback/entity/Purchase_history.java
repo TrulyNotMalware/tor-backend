@@ -17,7 +17,7 @@ public class Purchase_history {
 
     @NotNull
     @Column("productId")//FK
-    private int productId;
+    private long productId;
 
     @NotNull
     @Column("count")
