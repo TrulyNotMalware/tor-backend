@@ -1,10 +1,12 @@
 package com.hackerton.tor.torback.preset;
 
 import com.hackerton.tor.torback.entity.Preset;
+import com.hackerton.tor.torback.entity.Preset_detail;
+import com.hackerton.tor.torback.entity.Purchase_history;
 import com.hackerton.tor.torback.repository.PresetRepository;
+import com.hackerton.tor.torback.repository.PurchaseRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONObject;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -12,8 +14,7 @@ import reactor.core.publisher.Mono;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collector;
+import java.util.Map;
 
 @Slf4j
 @AllArgsConstructor
@@ -21,11 +22,12 @@ import java.util.stream.Collector;
 public class PresetServices {
 
     PresetRepository presetRepository;
+    PurchaseRepository purchaseRepository;
     DatabaseClient databaseClient;
 
     public Flux<Preset> getPresetListTop20(){
         return this.presetRepository.getPresetListByRecommend()
-                .doOnError(error -> log.trace(error.getMessage())).log("getPreset Ranking");
+                .doOnError(error ->log.trace(error.getMessage())).log("getPreset Ranking");
     }
 
     public Flux<Preset> getMyPresetLists(@NotNull String userId){
@@ -48,26 +50,36 @@ public class PresetServices {
                 .doOnError(error -> log.trace(error.getMessage()));
     }
 
-//    public Mono<Preset> createNewPreset(
-//            @NotNull String presetName,
-//            String presetContent,
-//            @NotNull String presetCategoryName,
-//            @NotNull String producer,
-//            JSONObject items
-//    ){
-//        return this.presetRepository.insertNewPreset(presetName,presetContent,presetCategoryName,producer)
-//                .flatMap(preset -> {
-//                    long presetId = preset.getPresetId();
-//                    return Mono.just((Set<String>) items.keySet()).flatMapMany(Flux::fromIterable)
-//                            .flatMap(key -> {
-//                                List<Long> values = (List<Long>) items.get(key);
-//                                return Mono.just(values).flatMapMany(Flux::fromIterable)
-//                                        .flatMap(value -> {
-//
-//                                        })
-//                            });
-//                });
-//    }
+    public Mono<List<Purchase_history>> updatePurchaseHistory(
+            @NotNull String userId,
+            @NotNull long presetId,
+            Map<String,Integer> items){
+        long buyCount = 1;
+        return this.presetRepository.updateBuyCount(presetId).flatMap(preset -> {
+            log.debug(String.valueOf(preset.getPresetId()));
+            return this.presetRepository.insertNewUserPresetBinding(userId,presetId,buyCount)
+                    .flatMap(user_preset_binding -> Mono.just(items.keySet()).flatMapMany(Flux::fromIterable)
+                            .flatMap(key -> this.purchaseRepository.insertNewPurchaseHistory(userId,key,items.get(key))).collectList());
+        });
+    }
+
+    public Mono<List<Preset_detail>> createPreset(
+                @NotNull String presetName,
+                String presetContent,
+                @NotNull String presetCategoryName,
+                @NotNull String producer,
+                Map<String,String> items
+    ){
+            return this.presetRepository.insertNewPreset(presetName,presetContent,presetCategoryName,producer)
+                    .flatMap(preset -> {
+                        long presetId = preset.getPresetId();
+                        return Mono.just(items.keySet()).flatMapMany(Flux::fromIterable)
+                                .flatMap(key -> {
+                                    String categoryName = items.get(key);
+                                    return this.presetRepository.insertPresetDetail(presetId,categoryName,Integer.parseInt(key));
+                                }).collectList();
+                    });
+    }
 
     public Mono<Double> getEvalPresetScores(@NotNull String userId, @NotNull int presetId){
         //Final Return
@@ -86,21 +98,6 @@ public class PresetServices {
                                 Mono.just(
                                         objects.getT1()+objects.getT2()+objects.getT3()+objects.getT4()+objects.getT5()
                         +objects2.getT1()+objects2.getT2()+objects2.getT3()+ objects2.getT4())));
-
-//        return getProductPopularityScore(presetId).flatMap(PopularityScore -> {
-//            log.debug("PopularityScore : {}",PopularityScore);
-//            return getPresetDetailNumberScore(presetId).flatMap(PresetDetailNumberScore -> {
-//                log.debug("PresetDetailNumberScore : {}",PresetDetailNumberScore);
-//                return getPresetRatioScore(presetId).flatMap(PresetRatioScore -> {
-//                    log.debug("PresetRatioScore : {}",PresetRatioScore);
-//                    return getPresetRecentlyPopularityScore(presetId).flatMap(PresetRecentlyPopularityScore -> {
-//                        log.debug("PresetRecentlyPopularityScore : {}",PresetRecentlyPopularityScore);
-//                        return Mono.just(PopularityScore+PresetDetailNumberScore
-//                                +PresetRatioScore);
-//                    });
-//                });
-//            });
-//        });
     }
 
     // 모음집 평가 함수 1번 : 모음집 내에 있는 제품들이 다른 사용자들에게 얼마나 인기있는지 평가

@@ -13,15 +13,23 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Data
-@Table(name = "user_filter_binding")
-public class User_filter_binding {
-    @Nullable
-    @Column("userId")//FK
+@Table(name = "user_preset_binding")
+public class User_preset_binding {
+    @NotNull
+    @Column("userId") //FK
     private String userId;
 
-    @Nullable
-    @Column("filterName")//FK
-    private long filterName;
+    @NotNull
+    @Column("presetId") //FK
+    private long presetId;
+
+    @NotNull
+    @Column("recommend")
+    private int recommend;
+
+    @NotNull
+    @Column("buyCount")
+    private int buyCount;
 
     @Nullable
     @JsonSerialize(using = LocalDateTimeSerializer.class)
