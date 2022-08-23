@@ -5,10 +5,7 @@ import com.hackerton.tor.torback.product.ProductController;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.linkTo;
@@ -17,6 +14,7 @@ import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.met
 @Slf4j
 @AllArgsConstructor
 @RestController
+@CrossOrigin
 @RequestMapping("/api/category")
 public class CategoryController {
 
