@@ -21,6 +21,12 @@ public class ProductController {
 
     private ProductServices services;
 
+    /**
+     * This method is gonna replace by ES services.
+     * @param presetName
+     * @return
+     */
+
     @GetMapping(value = "/getProductList/{presetName}", produces = MediaTypes.HAL_JSON_VALUE)
     public Mono<CollectionModel<?>> getProductListsByPresetName(
             @PathVariable String presetName
