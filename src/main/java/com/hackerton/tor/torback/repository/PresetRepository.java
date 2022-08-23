@@ -28,9 +28,11 @@ public interface PresetRepository extends R2dbcRepository<Preset, String> {
 
     @Query("UPDATE preset\n" +
             "SET recommend = recommend + 1 \n" +
-            "WHERE presetId =:presetId; \n" +
+            "WHERE presetId =:presetId;\n" +
+            "INSERT INTO user_preset_binding(userId, presetId, recommend)\n" +
+            "VALUES (:userId,:presetId,1);" +
             "SELECT * FROM preset WHERE presetId = :presetId")
-    Mono<Preset> updatePresetRecommend(@Param(value = "presetId") int presetId);
+    Mono<Preset> updatePresetRecommend(@Param(value = "presetId") int presetId,@Param(value = "userId") String userId);
 
     @Query("INSERT INTO preset(presetName, presetContent, categoryName, producer)\n" +
             "VALUES(:presetName,:presetContent,:presetCategoryName,:producer);" +
@@ -64,4 +66,11 @@ public interface PresetRepository extends R2dbcRepository<Preset, String> {
             @Param(value = "buyCount") long buyCount
     );
 
+    @Query("SELECT * FROM user_preset_binding\n" +
+            "WHERE userId = :userId\n" +
+            "AND buyCount > 0\n" +
+            "ORDER BY createdAt DESC;")
+    Flux<User_preset_binding> getPresetPurchasedHistory(
+            @Param(value = "userId") String userId
+    );
 }

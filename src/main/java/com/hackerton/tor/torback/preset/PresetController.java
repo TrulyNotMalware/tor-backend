@@ -7,10 +7,12 @@ import com.hackerton.tor.torback.product.ProductController;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
+import org.springframework.data.repository.query.Param;
 import org.springframework.hateoas.*;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import javax.ws.rs.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -111,12 +113,22 @@ public class PresetController {
                 .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()));
     }
 
+    @GetMapping(value = "/getPresetById/{presetId}", produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<EntityModel<Preset>> getPresetInfoById(
+            @PathVariable int presetId
+    ){
+        Mono<Link> self = linkTo(methodOn(PresetController.class).getPresetInfoById(presetId)).withSelfRel().toMono();
+        return this.services.getPresetByPresetId(presetId).zipWith(self)
+                .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()));
+    }
+
     @PutMapping(value = "/updatePresetRecommend", produces = MediaTypes.HAL_JSON_VALUE)
     public Mono<Preset> updatePresetRecommendByPresetId(
             @RequestBody HashMap<String, String> params
     ){
         int presetId = Integer.parseInt(params.get("presetId"));
-        return this.services.updateRecommendByPresetId(presetId);
+        String userId = String.valueOf(params.get("userId"));
+        return this.services.updateRecommendByPresetId(presetId,userId);
     }
 
     @PostMapping(value = "/updatePurchaseHistory",produces = MediaTypes.HAL_JSON_VALUE)
@@ -174,4 +186,14 @@ public class PresetController {
                 .map(objects -> CollectionModel.of(objects.getT1(),objects.getT2()));
     }
 
+    @GetMapping(value = "/getUserPresetPurchasedHistory/{userId}")
+    public Mono<CollectionModel<?>> getUserPresetPurchasedHistory(
+            @PathVariable String userId
+    ){
+        Mono<Link> self = linkTo(methodOn(PresetController.class).getUserPresetPurchasedHistory(userId))
+                .withSelfRel().toMono();
+
+        return Mono.zip(this.services.getPurchasedHistory(userId).collectList(),self)
+                .map(objects -> CollectionModel.of(objects.getT1(),objects.getT2()));
+    }
 }

@@ -3,6 +3,7 @@ package com.hackerton.tor.torback.preset;
 import com.hackerton.tor.torback.entity.Preset;
 import com.hackerton.tor.torback.entity.Preset_detail;
 import com.hackerton.tor.torback.entity.Purchase_history;
+import com.hackerton.tor.torback.entity.User_preset_binding;
 import com.hackerton.tor.torback.repository.PresetRepository;
 import com.hackerton.tor.torback.repository.PurchaseRepository;
 import lombok.AllArgsConstructor;
@@ -45,8 +46,26 @@ public class PresetServices {
                 .doOnError(error -> log.trace(error.getMessage()));
     }
 
-    public Mono<Preset> updateRecommendByPresetId(@NotNull int presetId){
-        return this.presetRepository.updatePresetRecommend(presetId)
+    public Mono<Preset> updateRecommendByPresetId(@NotNull int presetId,
+                                                  @NotNull String userId){
+        return this.databaseClient.sql("SELECT COALESCE(SUM(recommend),0) AS recommend FROM user_preset_binding\n" +
+                "WHERE userId = '"+userId+"'\n" +
+                "AND presetId = "+presetId+";\n").fetch().one()
+                .flatMap(stringObjectMap -> {
+                    if(Integer.parseInt(String.valueOf(stringObjectMap.get("recommend")))>0) return Mono.empty();
+                    else return this.databaseClient.sql("SELECT COUNT(*) AS exist FROM preset\n" +
+                            "WHERE producer = '"+userId+"'\n" +
+                            "AND presetId = "+presetId+";\n").fetch().one()
+                            .flatMap(stringObjectMap1 -> {
+                                if(Integer.parseInt(String.valueOf(stringObjectMap1.get("exist")))>0) return Mono.empty();
+                                else return this.presetRepository.updatePresetRecommend(presetId,userId)
+                                        .doOnError(error -> log.trace(error.getMessage()));
+                            });
+                });
+    }
+
+    public Flux<User_preset_binding> getPurchasedHistory(@NotNull String userId){
+        return this.presetRepository.getPresetPurchasedHistory(userId)
                 .doOnError(error -> log.trace(error.getMessage()));
     }
 
