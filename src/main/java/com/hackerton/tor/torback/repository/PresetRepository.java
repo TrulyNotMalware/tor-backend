@@ -1,9 +1,6 @@
 package com.hackerton.tor.torback.repository;
 
-import com.hackerton.tor.torback.entity.Preset;
-import com.hackerton.tor.torback.entity.Preset_detail;
-import com.hackerton.tor.torback.entity.Purchase_history;
-import com.hackerton.tor.torback.entity.User_preset_binding;
+import com.hackerton.tor.torback.entity.*;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import org.springframework.data.repository.query.Param;
@@ -72,5 +69,14 @@ public interface PresetRepository extends R2dbcRepository<Preset, String> {
             "ORDER BY createdAt DESC;")
     Flux<User_preset_binding> getPresetPurchasedHistory(
             @Param(value = "userId") String userId
+    );
+
+    @Query("INSERT INTO preset_preferences(userNumber,presetId,preference)\n" +
+            "VALUES (:userNumber,:presetId,:preference);\n" +
+            "SELECT * FROM preset_preferences WHERE userNumber=:userNumber AND presetId=:presetId;")
+    Mono<Preset_preferences> insertPresetPreference(
+            @Param(value = "userNumber") long userNumber,
+            @Param(value = "presetId") long presetId,
+            @Param(value = "preference") float preference
     );
 }

@@ -1,9 +1,6 @@
 package com.hackerton.tor.torback.preset;
 
-import com.hackerton.tor.torback.entity.Preset;
-import com.hackerton.tor.torback.entity.Preset_detail;
-import com.hackerton.tor.torback.entity.Purchase_history;
-import com.hackerton.tor.torback.entity.User_preset_binding;
+import com.hackerton.tor.torback.entity.*;
 import com.hackerton.tor.torback.repository.PresetRepository;
 import com.hackerton.tor.torback.repository.PurchaseRepository;
 import lombok.AllArgsConstructor;
@@ -38,6 +35,13 @@ public class PresetServices {
 
     public Mono<Preset> getPresetByPresetId(@NotNull int presetId){
         return this.presetRepository.getPresetById(presetId)
+                .doOnError(error -> log.trace(error.getMessage()));
+    }
+
+    public Mono<Preset_preferences> insertPresetPreferences(@NotNull long userNumber,
+                                                            @NotNull long presetId,
+                                                            @NotNull float preference){
+        return this.presetRepository.insertPresetPreference(userNumber, presetId, preference)
                 .doOnError(error -> log.trace(error.getMessage()));
     }
 

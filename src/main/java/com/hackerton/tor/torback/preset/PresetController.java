@@ -2,6 +2,7 @@ package com.hackerton.tor.torback.preset;
 
 import com.hackerton.tor.torback.entity.Preset;
 import com.hackerton.tor.torback.entity.Preset_detail;
+import com.hackerton.tor.torback.entity.Preset_preferences;
 import com.hackerton.tor.torback.entity.Preset_score;
 import com.hackerton.tor.torback.product.ProductController;
 import lombok.AllArgsConstructor;
@@ -195,5 +196,15 @@ public class PresetController {
 
         return Mono.zip(this.services.getPurchasedHistory(userId).collectList(),self)
                 .map(objects -> CollectionModel.of(objects.getT1(),objects.getT2()));
+    }
+
+    @PostMapping(value = "/insertPresetScores", produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<Preset_preferences> inertPresetPreferences(
+            @RequestBody HashMap<String, Object> params
+    ){
+        long userNumber = Long.parseLong(String.valueOf(params.get("userNumber")));
+        long presetId = Long.parseLong(String.valueOf(params.get("presetId")));
+        float preference = Float.parseFloat(String.valueOf(params.get("preference")));
+        return this.services.insertPresetPreferences(userNumber,presetId,preference);
     }
 }
