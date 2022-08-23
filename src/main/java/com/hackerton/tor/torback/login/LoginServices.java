@@ -46,4 +46,11 @@ public class LoginServices {
                 .log("User insert");
 
     }
+
+    public Mono<User> isDuplicatedUser(@NotNull String userId){
+        return this.userRepository.selectUserById(userId)
+                .doOnError(error -> log.trace(error.getMessage()))
+                .switchIfEmpty(Mono.defer(() -> Mono.empty()));
+    }
+
 }

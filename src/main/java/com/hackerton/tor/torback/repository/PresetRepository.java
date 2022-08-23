@@ -1,7 +1,6 @@
 package com.hackerton.tor.torback.repository;
 
-import com.hackerton.tor.torback.entity.Preset;
-import com.hackerton.tor.torback.entity.Preset_detail;
+import com.hackerton.tor.torback.entity.*;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import org.springframework.data.repository.query.Param;
@@ -26,9 +25,11 @@ public interface PresetRepository extends R2dbcRepository<Preset, String> {
 
     @Query("UPDATE preset\n" +
             "SET recommend = recommend + 1 \n" +
-            "WHERE presetId =:presetId; \n" +
+            "WHERE presetId =:presetId;\n" +
+            "INSERT INTO user_preset_binding(userId, presetId, recommend)\n" +
+            "VALUES (:userId,:presetId,1);" +
             "SELECT * FROM preset WHERE presetId = :presetId")
-    Mono<Preset> updatePresetRecommend(@Param(value = "presetId") int presetId);
+    Mono<Preset> updatePresetRecommend(@Param(value = "presetId") int presetId,@Param(value = "userId") String userId);
 
     @Query("INSERT INTO preset(presetName, presetContent, categoryName, producer)\n" +
             "VALUES(:presetName,:presetContent,:presetCategoryName,:producer);" +
@@ -39,11 +40,43 @@ public interface PresetRepository extends R2dbcRepository<Preset, String> {
             @Param(value = "presetCategoryName") String presetCategoryName,
             @Param(value = "producer") String producer);
 
-    @Query("INSERT INTO preset_detail(presetId, categoryName, productId) VALUES (:presetId,:'productCategoryName', :productId);\n" +
+    @Query("INSERT INTO preset_detail(presetId, categoryName, productId) VALUES (:presetId,:productCategoryName, :productId);\n" +
             "SELECT * FROM preset_detail WHERE presetId = :presetId AND productId = :productId;")
     Mono<Preset_detail> insertPresetDetail(
             @Param(value = "presetId") long presetId,
             @Param(value = "productCategoryName") String productCategoryName,
             @Param(value = "productId") long productId
+    );
+
+    @Query("UPDATE preset \n" +
+            "SET buyCount = buyCount + 1 \n" +
+            "WHERE presetId = :presetId;\n" +
+            "SELECT * FROM preset WHERE presetId = :presetId;")
+    Mono<Preset> updateBuyCount(@Param(value = "presetId") long presetId);
+
+    @Query("INSERT INTO user_preset_binding(userId,presetId,buyCount) \n" +
+            "VALUES (:userId,:presetId,:buyCount);" +
+            "SELECT 1")
+    Mono<User_preset_binding> insertNewUserPresetBinding(
+            @Param(value = "userId") String userId,
+            @Param(value = "presetId") long presetId,
+            @Param(value = "buyCount") long buyCount
+    );
+
+    @Query("SELECT * FROM user_preset_binding\n" +
+            "WHERE userId = :userId\n" +
+            "AND buyCount > 0\n" +
+            "ORDER BY createdAt DESC;")
+    Flux<User_preset_binding> getPresetPurchasedHistory(
+            @Param(value = "userId") String userId
+    );
+
+    @Query("INSERT INTO preset_preferences(userNumber,presetId,preference)\n" +
+            "VALUES (:userNumber,:presetId,:preference);\n" +
+            "SELECT * FROM preset_preferences WHERE userNumber=:userNumber AND presetId=:presetId;")
+    Mono<Preset_preferences> insertPresetPreference(
+            @Param(value = "userNumber") long userNumber,
+            @Param(value = "presetId") long presetId,
+            @Param(value = "preference") float preference
     );
 }

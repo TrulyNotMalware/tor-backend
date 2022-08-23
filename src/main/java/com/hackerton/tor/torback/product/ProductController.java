@@ -3,7 +3,10 @@ package com.hackerton.tor.torback.product;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.hateoas.*;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.linkTo;
@@ -17,6 +20,12 @@ import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.met
 public class ProductController {
 
     private ProductServices services;
+
+    /**
+     * This method is gonna replace by ES services.
+     * @param presetName
+     * @return
+     */
 
     @GetMapping(value = "/getProductList/{presetName}", produces = MediaTypes.HAL_JSON_VALUE)
     public Mono<CollectionModel<?>> getProductListsByPresetName(
@@ -60,4 +69,8 @@ public class ProductController {
         return Mono.zip(this.services.getProductListsByCategoryName(categoryName).collectList(),selfLink)
                 .map(objects -> CollectionModel.of(objects.getT1(),objects.getT2()));
     }
+//    @GetMapping(value = "/getProductImage/{productId}",produces = MediaType.IMAGE_JPEG_VALUE)
+//    public Mono<ServerResponse> getProductImages(@PathVariable String productId){
+//
+//    }
 }

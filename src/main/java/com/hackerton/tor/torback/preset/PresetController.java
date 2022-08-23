@@ -1,15 +1,19 @@
 package com.hackerton.tor.torback.preset;
 
 import com.hackerton.tor.torback.entity.Preset;
+import com.hackerton.tor.torback.entity.Preset_detail;
+import com.hackerton.tor.torback.entity.Preset_preferences;
 import com.hackerton.tor.torback.entity.Preset_score;
 import com.hackerton.tor.torback.product.ProductController;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
+import org.springframework.data.repository.query.Param;
 import org.springframework.hateoas.*;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import javax.ws.rs.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -110,35 +114,97 @@ public class PresetController {
                 .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()));
     }
 
-    @PutMapping(value = "/updatePresetRecommend", produces = MediaTypes.HAL_JSON_VALUE)
+    @GetMapping(value = "/getPresetById/{presetId}", produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<EntityModel<Preset>> getPresetInfoById(
+            @PathVariable int presetId
+    ){
+        Mono<Link> self = linkTo(methodOn(PresetController.class).getPresetInfoById(presetId)).withSelfRel().toMono();
+        return this.services.getPresetByPresetId(presetId).zipWith(self)
+                .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()));
+    }
+
+    @PostMapping(value = "/updatePresetRecommend", produces = MediaTypes.HAL_JSON_VALUE)
     public Mono<Preset> updatePresetRecommendByPresetId(
             @RequestBody HashMap<String, String> params
     ){
         int presetId = Integer.parseInt(params.get("presetId"));
-        return this.services.updateRecommendByPresetId(presetId);
+        String userId = String.valueOf(params.get("userId"));
+        return this.services.updateRecommendByPresetId(presetId,userId);
     }
 
-//    @PostMapping(value = "/createdPreset", produces = MediaTypes.HAL_JSON_VALUE)
-//    public Mono<EntityModel<Preset>> createPreset(
-//            @RequestBody HashMap<String, Object> params
-//    ){
-//        /**
-//         * {
-//         *     "presetName":String,
-//         *     "presetContent":String,
-//         *     "presetCategoryName":presetCategory,
-//         *     "producer": userId,
-//         *     "items":{
-//         *         productCategoryName:[productId,productId...],
-//         *     }
-//         * }
-//         */
-//        String presetName = String.valueOf(params.get("presetName"));
-//        String presetContent = String.valueOf(params.get("presetContent"));
-//        String presetCategoryName = String.valueOf(params.get("presetCategory"));
-//        String producer = String.valueOf(params.get("producer"));
-//        JSONObject items = (JSONObject) params.get("items");
-//
-//    }
+    @PostMapping(value = "/updatePurchaseHistory",produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<CollectionModel<?>> updatePurchaseHistory(
+            @RequestBody HashMap<String, Object> params
+    ){
+        /**
+         * Example format of params
+         * {
+         *     "userId":"freddie",
+         *     "presetId":1,
+         *     "items":{//productId : Count
+         *         "102":100,
+         *         "93":18
+         *     }
+         * }
+         */
+        String userId = String.valueOf(params.get("userId"));
+        long presetId = Long.parseLong(String.valueOf(params.get("presetId")));
 
+        Mono<Link> selfLink = linkTo(methodOn(PresetController.class).updatePurchaseHistory(params))
+                .withSelfRel().toMono();
+        Map<String,Integer> items = (HashMap<String,Integer>) params.get("items");
+
+        return Mono.zip(this.services.updatePurchaseHistory(userId,presetId,items),selfLink)
+                .map(objects -> CollectionModel.of(objects.getT1(),objects.getT2()));
+    }
+
+
+    @PostMapping(value = "/createPreset", produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<CollectionModel<?>> createPreset(
+            @RequestBody HashMap<String, Object> params
+    ){
+        /**
+         * {
+         *     "presetName":String,
+         *     "presetContent":String,
+         *     "presetCategoryName":presetCategory,
+         *     "producer": userId,
+         *     "items":{
+         *         productCategoryName:[productId,productId...],
+         *     }
+         * }
+         */
+        String presetName = String.valueOf(params.get("presetName"));
+        String presetContent = String.valueOf(params.get("presetContent"));
+        String presetCategoryName = String.valueOf(params.get("presetCategoryName"));
+        String producer = String.valueOf(params.get("producer"));
+        Map<String,String> items = (Map<String, String>) params.get("items");
+
+        Mono<Link> selfLink = linkTo(methodOn(PresetController.class).createPreset(params))
+                .withSelfRel().toMono();
+
+        return Mono.zip(this.services.createPreset(presetName,presetContent,presetCategoryName,producer,items),selfLink)
+                .map(objects -> CollectionModel.of(objects.getT1(),objects.getT2()));
+    }
+
+    @GetMapping(value = "/getUserPresetPurchasedHistory/{userId}")
+    public Mono<CollectionModel<?>> getUserPresetPurchasedHistory(
+            @PathVariable String userId
+    ){
+        Mono<Link> self = linkTo(methodOn(PresetController.class).getUserPresetPurchasedHistory(userId))
+                .withSelfRel().toMono();
+
+        return Mono.zip(this.services.getPurchasedHistory(userId).collectList(),self)
+                .map(objects -> CollectionModel.of(objects.getT1(),objects.getT2()));
+    }
+
+    @PostMapping(value = "/insertPresetScores", produces = MediaTypes.HAL_JSON_VALUE)
+    public Mono<Preset_preferences> inertPresetPreferences(
+            @RequestBody HashMap<String, Object> params
+    ){
+        long userNumber = Long.parseLong(String.valueOf(params.get("userNumber")));
+        long presetId = Long.parseLong(String.valueOf(params.get("presetId")));
+        float preference = Float.parseFloat(String.valueOf(params.get("preference")));
+        return this.services.insertPresetPreferences(userNumber,presetId,preference);
+    }
 }
