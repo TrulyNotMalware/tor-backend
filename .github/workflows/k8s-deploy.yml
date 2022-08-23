@@ -2,7 +2,7 @@ name: Deploy in K8S
 
 on:
   pull_request:
-    branches: [master]
+    branches: [main]
 
 jobs:
   build:
@@ -11,31 +11,31 @@ jobs:
         DOCKER_IMAGE_NAME: tor-backend
         DOCKER_TAG: 0.${{ github.run_number }}
         DEPLOY_YAML: yamls/tor-backend-deploy-template.yaml
-        
+        CONFIG_FILE: src/main/resources/application.properties
      steps:
      - name: Checkout
        uses: actions/checkout@v3
 
      - name: Set application.properties
-       run: sed -i 's/$db_user/${{ secrets.DB_USER }}/g' ${{ env.CONFIG_FILE  }} && sed -i 's/$db_password/${{ secrets.DB_PW }}/g' ${{ env.CONFIG_FILE }} && cat ${{ env.CONFIG_FILE  }}
-       
+       run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ${{ env.CONFIG_FILE  }}
+
      - name: Login to DockerHub
        uses: docker/login-action@v1
        with:
          username: ${{ secrets.DOCKER_USER }}
          password: ${{ secrets.DOCKER_TOKEN }}
-    
+
      - name: Build Docker Image
        run:  docker build . -t ${{ secrets.DOCKER_USER }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }} -f Dockerfile
-       
+
      - name: Push Docker Image to DockerHub
        run : docker push ${{ secrets.DOCKER_USER }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }}
-       
+
      - name: Set K8S Config
        run: mkdir ~/.kube && echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
-      
+
      - name: Change Image Name In Yaml
-       run: sed -i 's/#VERSION_STRING#/${{ secrets.DOCKER_USER }}\/${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }}/g' ${{ env.DEPLOY_YAML }} 
-      
+       run: sed -i 's/#VERSION_STRING#/${{ secrets.DOCKER_USER }}\/${{ env.DOCKER_IMAGE_NAME }}:${{ env.DOCKER_TAG }}/g' ${{ env.DEPLOY_YAML }}
+
      - name: Deploy on K8S
        run: kubectl apply -f ${{ env.DEPLOY_YAML }}
