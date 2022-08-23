@@ -11,7 +11,7 @@ import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
 
 @Configuration
 @AllArgsConstructor
-@PropertySource("application.properties")
+@PropertySource("classpath:application.properties")
 public class DatabaseConfiguration extends AbstractR2dbcConfiguration {
 
     private Environment environment;

@@ -12,7 +12,7 @@ import org.springframework.core.env.Environment;
 @ComponentScan
 @Configuration
 @AllArgsConstructor
-@PropertySource("application.properties")
+@PropertySource("classpath:application.properties")
 public class DataSourceConfiguration {
 
     private Environment environment;

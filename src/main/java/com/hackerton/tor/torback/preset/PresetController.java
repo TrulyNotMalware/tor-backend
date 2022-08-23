@@ -19,6 +19,7 @@ import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.met
 @Slf4j
 @AllArgsConstructor
 @RestController
+@CrossOrigin
 @RequestMapping("/api/preset")
 public class PresetController {
 
