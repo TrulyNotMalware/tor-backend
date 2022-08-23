@@ -123,7 +123,7 @@ public class PresetController {
                 .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()));
     }
 
-    @PutMapping(value = "/updatePresetRecommend", produces = MediaTypes.HAL_JSON_VALUE)
+    @PostMapping(value = "/updatePresetRecommend", produces = MediaTypes.HAL_JSON_VALUE)
     public Mono<Preset> updatePresetRecommendByPresetId(
             @RequestBody HashMap<String, String> params
     ){

@@ -47,7 +47,7 @@ public class LoginController {
                 .map(objects -> EntityModel.of(objects.getT1(),objects.getT2()));
     }
 
-    @PutMapping(value = "/signUp", produces = MediaTypes.HAL_JSON_VALUE )
+    @PostMapping(value = "/signUp", produces = MediaTypes.HAL_JSON_VALUE )
     public Mono<EntityModel<User>> createNewUser(
         @RequestBody HashMap<String, String> params
     ){
