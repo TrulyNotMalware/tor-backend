@@ -176,7 +176,7 @@ public class PresetServices {
                             "WHERE tb2.productId=" + productId + "\n").fetch().one()
                             .flatMap(rankObjects -> {
                                 double score = 0.0; // 제품의 점수, 공식 = 1 - productRank/purchasedProductNum
-                                int productRank = Integer.parseInt(String.valueOf(rankObjects.get("ranking")));
+                                Double productRank = Double.parseDouble(String.valueOf(rankObjects.get("ranking")));
                                 if(purchasedProductNum == 0 || productRank == 0){
                                     score = 0;
                                 }
