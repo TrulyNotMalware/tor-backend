@@ -87,21 +87,21 @@ public class PresetServices {
     }
 
     public Mono<List<Preset_detail>> createPreset(
-                @NotNull String presetName,
-                String presetContent,
-                @NotNull String presetCategoryName,
-                @NotNull String producer,
-                Map<String,String> items
+            @NotNull String presetName,
+            String presetContent,
+            @NotNull String presetCategoryName,
+            @NotNull String producer,
+            Map<String,String> items
     ){
-            return this.presetRepository.insertNewPreset(presetName,presetContent,presetCategoryName,producer)
-                    .flatMap(preset -> {
-                        long presetId = preset.getPresetId();
-                        return Mono.just(items.keySet()).flatMapMany(Flux::fromIterable)
-                                .flatMap(key -> {
-                                    String categoryName = items.get(key);
-                                    return this.presetRepository.insertPresetDetail(presetId,categoryName,Integer.parseInt(key));
-                                }).collectList();
-                    });
+        return this.presetRepository.insertNewPreset(presetName,presetContent,presetCategoryName,producer)
+                .flatMap(preset -> {
+                    long presetId = preset.getPresetId();
+                    return Mono.just(items.keySet()).flatMapMany(Flux::fromIterable)
+                            .flatMap(key -> {
+                                String categoryName = items.get(key);
+                                return this.presetRepository.insertPresetDetail(presetId,categoryName,Integer.parseInt(key));
+                            }).collectList();
+                });
     }
 
     public Mono<Double> getEvalPresetScores(@NotNull String userId, @NotNull int presetId){
@@ -120,7 +120,7 @@ public class PresetServices {
                         .flatMap(objects2 ->
                                 Mono.just(
                                         objects.getT1()+objects.getT2()+objects.getT3()+objects.getT4()+objects.getT5()
-                        +objects2.getT1()+objects2.getT2()+objects2.getT3()+ objects2.getT4())));
+                                                +objects2.getT1()+objects2.getT2()+objects2.getT3()+ objects2.getT4())));
     }
 
     // 모음집 평가 함수 1번 : 모음집 내에 있는 제품들이 다른 사용자들에게 얼마나 인기있는지 평가
@@ -145,7 +145,7 @@ public class PresetServices {
                                 double sumProductScore = doubles.stream().reduce(0D,Double::sum);// 모음집 내 제품 점수의 합
                                 return Mono.just(sumProductScore);
                             });
-                        }).switchIfEmpty(Mono.defer(() -> Mono.just(0.0D)));
+                }).switchIfEmpty(Mono.defer(() -> Mono.just(0.0D)));
     }
 
     public Mono<Double> getProductPopularity ( int productId ){
@@ -273,7 +273,8 @@ public class PresetServices {
                                 double score = 0; // 모음집 점수 = 10 * productCategoryNum / presetNum
                                 int presetNum = Integer.parseInt(String.valueOf(countObject2.get("presetNum")));
                                 score = 10.0 * productCategoryNum / presetNum;
-                                return Mono.just(score);
+                                if (Double.isNaN(score)) return Mono.just(0.0D);
+                                else return Mono.just(score);
                             });
                 }).switchIfEmpty(Mono.defer(() -> Mono.just(0.0D)));
     }
@@ -387,7 +388,8 @@ public class PresetServices {
                                 int presetNumber = Integer.parseInt(String.valueOf(countObject.get("presetNumber")));
                                 double score = 0; // 모음집 점수 = 5 * purchasedProductInPresetNumber / presetNumber
                                 score = 5.0 * purchasedProductInPresetNumber / presetNumber;
-                                return Mono.just(score);
+                                if (Double.isNaN(score)) return Mono.just(0.0D);
+                                else return Mono.just(score);
                             }).switchIfEmpty(Mono.defer(() -> Mono.just(0.0D)));
                 }).switchIfEmpty(Mono.defer(() -> Mono.just(0.0D)));
     }
