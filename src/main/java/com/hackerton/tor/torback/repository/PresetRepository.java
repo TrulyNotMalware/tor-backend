@@ -79,4 +79,7 @@ public interface PresetRepository extends R2dbcRepository<Preset, String> {
             @Param(value = "presetId") long presetId,
             @Param(value = "preference") float preference
     );
+
+    @Query("SELECT * FROM preset WHERE categoryName=:categoryName")
+    Flux<Preset> getPresetListByCategory(@Param(value = "categoryName")String categoryName);
 }

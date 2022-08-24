@@ -11,6 +11,7 @@ import org.json.simple.JSONObject;
 import org.springframework.data.repository.query.Param;
 import org.springframework.hateoas.*;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.ws.rs.Path;
@@ -206,5 +207,10 @@ public class PresetController {
         long presetId = Long.parseLong(String.valueOf(params.get("presetId")));
         float preference = Float.parseFloat(String.valueOf(params.get("preference")));
         return this.services.insertPresetPreferences(userNumber,presetId,preference);
+    }
+
+    @GetMapping(value = "/getPrestListByCategory/{categoryName}",produces = MediaTypes.HAL_JSON_VALUE)
+    public Flux<Preset> getPresetListByCategory(@PathVariable String categoryName){
+        return this.services.getPresetListByCategory(categoryName);
     }
 }

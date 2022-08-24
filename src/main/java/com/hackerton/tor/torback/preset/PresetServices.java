@@ -68,6 +68,11 @@ public class PresetServices {
                 });
     }
 
+    public Flux<Preset> getPresetListByCategory(@NotNull String categoryName){
+        return this.presetRepository.getPresetListByCategory(categoryName)
+                .doOnError(error -> log.trace(error.getMessage()));
+    }
+
     public Flux<User_preset_binding> getPurchasedHistory(@NotNull String userId){
         return this.presetRepository.getPresetPurchasedHistory(userId)
                 .doOnError(error -> log.trace(error.getMessage()));
