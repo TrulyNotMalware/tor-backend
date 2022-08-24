@@ -62,13 +62,17 @@ public class MahoutServices {
         return Mono.zip(Mono.just(this.itemBasedRecommender.getRecommendedPresetItemByUserId(userId,numbers))
         ,Mono.just(this.userBasedRecommender.getPresetRecommendedItemsByUserId(userId,numbers)))
                 .flatMap(tuple2 -> {
+                    List<RecommendedItem> itemsList;
                     tuple2.getT1().forEach(recommendedItem -> {
                         log.debug("recommendedItem1 : {}",recommendedItem.getItemID());
                     });
                     tuple2.getT2().forEach(recommendedItem -> {
                         log.debug("recommendedItem2 : {}",recommendedItem.getItemID());
                     });
-                    List<RecommendedItem> itemsList = Stream.concat(tuple2.getT1().stream(),tuple2.getT2().stream())
+                    for(RecommendedItem item :tuple2.getT1()){
+                        tuple2.getT2().removeIf(item2 -> item.getItemID() == item2.getItemID());
+                    }
+                    itemsList = Stream.concat(tuple2.getT1().stream(),tuple2.getT2().stream())
                             .distinct().collect(Collectors.toList());
                     return Mono.just(itemsList);
                 }).flatMapMany(Flux::fromIterable).log("presetFlatMapMany")
